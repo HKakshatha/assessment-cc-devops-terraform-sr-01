@@ -65,7 +65,7 @@ resource "aws_cloudfront_distribution" "app" {
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = app_s3_origin
+    target_origin_id = "app_s3_origin"
     viewer_protocol_policy = "redirect-to-https"
   }
 
@@ -82,21 +82,19 @@ resource "aws_cloudfront_distribution" "app" {
 }
 
 data "aws_iam_policy_document" "app_bucket_policy" {
-  "Version":"2012-10-17",
-  "Statement": [
-    {
-      "Sid": "AllowCloudFrontServicePrincipalReadOnly",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "cloudfront.amazonaws.com"
-      },
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::aws_s3_bucket.app/*",
-      "Condition": {
-        "StringEquals": {
-          "AWS:SourceArn": "arn:aws:cloudfront::8001746424433:distribution/aws_cloudfront_distribution.app"
+  statement {
+    sid = "AllowCloudFrontServicePrincipalRead"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+      actions = ["s3:GetObject"]
+      resources = ["arn:aws:s3:::aws_s3_bucket.app/*"]
+      condition {
+        test     = "StringEquals"
+        variable = "AWS:SourceArn"
+        values   = [aws_cloudfront_distribution.app.arn]
         }
       }
     }
-  ]
-}
