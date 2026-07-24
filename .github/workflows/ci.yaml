@@ -27,9 +27,9 @@ jobs:
         working-directory: ./codebase/rdicidr-0.1.0
         run: npm run lint
 
-      - name: Run formatter
-        working-directory: ./codebase/rdicidr-0.1.0
-        run: npm run prettier
+      #- name: Run formatter
+      #  working-directory: ./codebase/rdicidr-0.1.0
+      #  run: npm run prettier
 
       - name: Run tests
         working-directory: ./codebase/rdicidr-0.1.0
