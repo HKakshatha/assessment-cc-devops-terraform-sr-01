@@ -35,7 +35,12 @@ jobs:
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.14.6"
-        
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+         terraform_wrapper: false # Prevents the buggy Node.js script wrapper from running
+      
       - name: Terraform Init
         working-directory: ./codebase/rdicidr-0.1.0/terraform
         run: terraform init
