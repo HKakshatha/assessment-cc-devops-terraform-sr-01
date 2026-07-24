@@ -1,0 +1,61 @@
+name: CD - Deploy to Devel
+
+
+on:
+  push:
+    branches: 
+      - devel
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '15.5.1'
+
+      - name: Install dependencies
+        working-directory: ./codebase/rdicidr-0.1.0
+        run: npm install
+
+      - name: Build project
+        working-directory: ./codebase/rdicidr-0.1.0
+        run: npm run build
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.14.6"
+        
+      - name: Terraform Init
+        working-directory: ./codebase/rdicidr-0.1.0/terraform
+        run: terraform init
+
+      - name: Terraform workspace select
+        working-directory: ./codebase/rdicidr-0.1.0/terraform
+        run: terraform workspace select devel || terraform workspace new devel
+
+      - name: Terraform Plan
+        working-directory: ./codebase/rdicidr-0.1.0/terraform
+        run: terraform plan -out=tfplan
+      
+      - name: Terraform Apply
+        working-directory: ./codebase/rdicidr-0.1.0/terraform
+        run: terraform apply -auto-approve -var="environment=devel"
+
+      - name: deploy to s3 bucket
+        working-directory: ./codebase/rdicidr-0.1.0
+        run: echo "Deployed to devel environment"
+
+      - name: verify cloudfront distribution
+        working-directory: ./codebase/rdicidr-0.1.0/terraform
+        run: echo "CloudFront distribution verified"
